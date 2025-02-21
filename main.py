@@ -51,7 +51,7 @@ def make_click(driver, xpathe, t=10, sleep_time=None):
             element.click();
         """
         driver.execute_script(js_script, xpathe)
-def amake_click(driver, xpathe, t=10, sleep_time=None):
+def amake_click(driver, xpathe, t=100, sleep_time=None):
     WebDriverWait(driver, t).until(EC.presence_of_element_located((By.XPATH, xpathe)))
     if sleep_time is not None:
             time.sleep(sleep_time)
