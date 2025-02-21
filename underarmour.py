@@ -78,6 +78,7 @@ def timberland(name, phone, address,zip_code):
         reader = csv.reader(file)
         next(reader)
         first_name = fake.first_name()
+        print(f'This is fake Uuser FirstName : {first_name}')
         last_name = fake.last_name()
         options = ChromeOptions()
         driver = Driver(uc=True)
@@ -87,6 +88,11 @@ def timberland(name, phone, address,zip_code):
         for row in reader:
             n+=1
             driver.get(row[0])
+            try:
+                Dialog_Close=WebDriverWait(driver,20).until(EC.presence_of_element_located((By.XPATH,'//dialog[@aria-labelledby="on-right-site-title"]//button[@aria-label="Close Dialog"]')))
+                Dialog_Close.click()
+            except:
+                pass
             size = row[4]
             stule_or_sku = row[1]
             name = row[2]
@@ -129,17 +135,17 @@ def timberland(name, phone, address,zip_code):
 
             price_element =WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//div[@id="product-price"]'))).text
             print(price_element)
-            if price_element.strip().lower()==price.strip().lower():
-                print("Product Price Matched")
-            else:
-                print("Product Price Not Matched with CSV data skipping Product")
-
+            # if price_element.strip().lower()==price.strip().lower():
+            #     print("Product Price Matched")
+            # else:
+            #     print("Product Price Not Matched with CSV data skipping Product")
+            #     continue
             add_to_cart_btn = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, f'//button[@data-testid="add-to-bag-button"]')))
             time.sleep(0.5)
             add_to_cart_btn.click()
             time.sleep(2)
                 
-            View_Bag=WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//a[contains(.,'View Bag')]")))
+            View_Bag=WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//a[contains(.,'View Bag')]")))
             driver.execute_script("arguments[0].click();",View_Bag)
             time.sleep(3)
             if n==1:
@@ -156,25 +162,25 @@ def timberland(name, phone, address,zip_code):
                 pass
 
        
-        Checkout_Btn=WebDriverWait(driver,100).until(EC.element_to_be_clickable((By.XPATH,"(//a[contains(.,'Checkout')])[1]")))
+        Checkout_Btn=WebDriverWait(driver,100).until(EC.element_to_be_clickable((By.XPATH,'(//a[@href="/en-us/checkout/"])[1]')))
         driver.execute_script("arguments[0].click();",Checkout_Btn)
         Guest_Checkout=WebDriverWait(driver,100).until(EC.element_to_be_clickable((By.XPATH,"//button[contains(.,'Continue As Guest')]")))
         driver.execute_script("arguments[0].click();",Guest_Checkout)
             
-        wait = WebDriverWait(driver, 10)  # 10-second timeout
+        wait = WebDriverWait(driver, 40)  # 10-second timeout
 
         # Wait for and fill out the text inputs
-        first_name = wait.until(EC.presence_of_element_located((By.NAME, "firstName")))
-        first_name.send_keys(first_name)
+        first_name_input = wait.until(EC.presence_of_element_located((By.NAME, "firstName")))
+        first_name_input.send_keys(first_name)
 
-        last_name = wait.until(EC.presence_of_element_located((By.NAME, "lastName")))
-        last_name.send_keys(last_name)
+        last_name_input = wait.until(EC.presence_of_element_located((By.NAME, "lastName")))
+        last_name_input.send_keys(last_name)
 
-        address_1 = wait.until(EC.presence_of_element_located((By.NAME, "address1")))
-        address_1.send_keys(address)
+        address_1_input = wait.until(EC.presence_of_element_located((By.NAME, "address1")))
+        address_1_input.send_keys(address)
 
-        city = wait.until(EC.presence_of_element_located((By.NAME, "city")))
-        city.send_keys("South Charleston")
+        city_input = wait.until(EC.presence_of_element_located((By.NAME, "city")))
+        city_input.send_keys("South Charleston")
 
         # Wait for and click the state button
         state_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@name="stateCode-combobox"]')))
@@ -183,41 +189,55 @@ def timberland(name, phone, address,zip_code):
         # Wait for and select the state from the dropdown
         state_option = wait.until(EC.element_to_be_clickable((By.XPATH, '//ul[contains(@id,"stateCode-listbox")]//li[@data-value="AL"]')))
         state_option.click()
-        zip_code_2, zz = zip_code.split(" ")
+        zip_code_2 = zip_code
         # Wait for and fill out the postal code
         postal_code = wait.until(EC.presence_of_element_located((By.NAME, "postalCode")))
         postal_code.send_keys(zip_code_2)
-
+        time.sleep(2)
         print("Form filled successfully!")
         # Wait for and click the shipping submit button
         shipping_submit = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@id="btn-shipping-submit"]')))
         driver.execute_script("arguments[0].click();",shipping_submit)
-
+        # input('Please Verify your address and Press Enter to Continue')
         # Switch to the iframe for credit card input
-        credit_card_iframe = wait.until(EC.frame_to_be_available_and_switch_to_it((By.XPATH, '//iframe[contains(@id,"credit-card")]')))
-        driver.switch_to_frame(credit_card_iframe)
+        try:
+            credit_card_iframe = WebDriverWait(driver,10).until(EC.frame_to_be_available_and_switch_to_it((By.XPATH, '//iframe[contains(@id,"credit-card")]')))
+            driver.switch_to_frame(credit_card_iframe)
+        except:
+            driver.execute_script("document.body.click();")
+            time.sleep(1)
+            # Close_Dialog=WebDriverWait(driver,10).until(EC.presence_of_element_located((By.XPATH,'//dialog[@role="dialog"]//button[contains(.,"Review Address")]/../../..//button[@aria-label="Close Dialog"]')))
+            # try:
+            #     Close_Dialog.click()
+            # except:
+            #     driver.execute_script("arguments[0].click();", Close_Dialog)
+            shipping_submit = WebDriverWait(driver,5).until(EC.presence_of_element_located((By.XPATH, '//button[@id="btn-shipping-submit"]')))
+            driver.execute_script("arguments[0].click();",shipping_submit)
         # Fill out the credit card information
-
+            credit_card_iframe = wait.until(EC.presence_of_element_located((By.XPATH, '//iframe[contains(@id,"credit-card")]')))
+            driver.switch_to_frame(credit_card_iframe)
         payment_details = "5442764142194527|06|27|046|John Doe"
         card_number, expiry_month, expiry_year , security_code,card_name = payment_details.split('|')
         expiry_date = f'{expiry_month}/{expiry_year}'
         
-        card_number = wait.until(EC.presence_of_element_located((By.XPATH, '//input[@id="cNumber"]')))
-        card_number.send_keys(card_number)  # Example Visa test card number
+        card_number_input = wait.until(EC.presence_of_element_located((By.XPATH, '//input[@id="cNumber"]')))
+        card_number_input.send_keys(card_number)  # Example Visa test card number
 
-        expiration_date = wait.until(EC.presence_of_element_located((By.XPATH, '//input[@id="exDate"]')))
-        expiration_date.send_keys(expiry_date)  # Example expiration date
+        expiration_date_input = wait.until(EC.presence_of_element_located((By.XPATH, '//input[@id="exDate"]')))
+        expiration_date_input.send_keys(expiry_date)  # Example expiration date
 
-        security_code = wait.until(EC.presence_of_element_located((By.XPATH, '//input[@id="secCode"]')))
-        security_code.send_keys(security_code)  # Example CVV
+        security_code_input = wait.until(EC.presence_of_element_located((By.XPATH, '//input[@id="secCode"]')))
+        security_code_input.send_keys(security_code)  # Example CVV
 
-        cardholder_name = wait.until(EC.presence_of_element_located((By.XPATH, '//input[@id="cName"]')))
-        cardholder_name.send_keys(card_name)
+        cardholder_name_input = wait.until(EC.presence_of_element_located((By.XPATH, '//input[@id="cName"]')))
+        cardholder_name_input.send_keys(card_name)
 
         driver.switch_to.default_content()
 
         continue_to_contact = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-testid="continue-to-contact"]')))
         continue_to_contact.click()
+        # time.sleep(1000)
+        time.sleep(10)
 name=''
 phone=''
 address='6600 London Rd'
